@@ -103,18 +103,18 @@ myöhemmin voi tehdä vaikeustasot ja aihevalinnan.
 ### Työkalut (12)
 | Sana | Tavut | Kuva | Taso |
 |---|---|---|---|
-| SAHA | SA-HA | 🪚 | 1 |
 | KYNÄ | KY-NÄ | ✏️ | 1 |
 | KIRVES | KIR-VES | 🪓 | 2 |
 | RUUVI | RUU-VI | 🔩 | 2 |
 | AVAIN | A-VAIN | 🔑 | 2 |
 | SAKSET | SAK-SET | ✂️ | 2 |
 | LUKKO | LUK-KO | 🔒 | 2 |
-| SANKO | SAN-KO | 🪣 | 2 |
 | LUUTA | LUU-TA | 🧹 | 2 |
-| KÖYSI | KÖY-SI | 🪢 | 2 |
 | VAAKA | VAA-KA | ⚖️ | 2 |
-| NEULA | NEU-LA | 🪡 | 2 |
+| HAKKU | HAK-KU | ⛏️ | 2 |
+| TIILI | TII-LI | 🧱 | 2 |
+| KETJU | KET-JU | 🔗 | 2 |
+| LANKA | LAN-KA | 🧵 | 2 |
 
 ### Eläimet (7)
 | Sana | Tavut | Kuva | Taso |
@@ -143,7 +143,9 @@ myöhemmin voi tehdä vaikeustasot ja aihevalinnan.
 **Huomioita sanavalinnoista:**
 - Monet aiheen tärkeimmistä sanoista ovat kolmitavuisia: TRAKTORI 🚜, KAIVURI, NOSTURI, VASARA 🔨, LAPIO, HARAVA. Ne sopivat seuraavalle vaikeustasolle.
 - Mukaan ei otettu sanoja, joiden kuva sekoittuisi toiseen (esim. KUKKO 🐓 ja KANA 🐔, TAKSI 🚕 ja AUTO 🚗).
-- Jotkin uudemmat emojit (🪚 🪢 🪣 🪡) eivät välttämättä näy vanhoilla laitteilla. Tarkistetaan testauksessa iPadilla.
+- Uudemmat emojit eivät näy Windows 10:ssä (testauksessa havaittu). Siksi SAHA, SANKO, KÖYSI ja NEULA
+  korvattiin sanoilla HAKKU, TIILI, KETJU ja LANKA. Uusia sanoja lisättäessä kuva pitää tarkistaa sekä
+  tietokoneella että iPadilla.
 
 ## 6. Rajaukset (ei kuulu versioon 1)
 

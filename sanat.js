@@ -36,18 +36,18 @@ const SANAT = [
   { "sana": "KELKKA", "tavut": ["KELK", "KA"],  "kuva": "🛷", "aihe": "ajoneuvot", "taso": 2 },
 
   // Työkalut
-  { "sana": "SAHA",   "tavut": ["SA", "HA"],    "kuva": "🪚", "aihe": "tyokalut", "taso": 1 },
   { "sana": "KYNÄ",   "tavut": ["KY", "NÄ"],    "kuva": "✏️", "aihe": "tyokalut", "taso": 1 },
   { "sana": "KIRVES", "tavut": ["KIR", "VES"],  "kuva": "🪓", "aihe": "tyokalut", "taso": 2 },
   { "sana": "RUUVI",  "tavut": ["RUU", "VI"],   "kuva": "🔩", "aihe": "tyokalut", "taso": 2 },
   { "sana": "AVAIN",  "tavut": ["A", "VAIN"],   "kuva": "🔑", "aihe": "tyokalut", "taso": 2 },
   { "sana": "SAKSET", "tavut": ["SAK", "SET"],  "kuva": "✂️", "aihe": "tyokalut", "taso": 2 },
   { "sana": "LUKKO",  "tavut": ["LUK", "KO"],   "kuva": "🔒", "aihe": "tyokalut", "taso": 2 },
-  { "sana": "SANKO",  "tavut": ["SAN", "KO"],   "kuva": "🪣", "aihe": "tyokalut", "taso": 2 },
   { "sana": "LUUTA",  "tavut": ["LUU", "TA"],   "kuva": "🧹", "aihe": "tyokalut", "taso": 2 },
-  { "sana": "KÖYSI",  "tavut": ["KÖY", "SI"],   "kuva": "🪢", "aihe": "tyokalut", "taso": 2 },
   { "sana": "VAAKA",  "tavut": ["VAA", "KA"],   "kuva": "⚖️", "aihe": "tyokalut", "taso": 2 },
-  { "sana": "NEULA",  "tavut": ["NEU", "LA"],   "kuva": "🪡", "aihe": "tyokalut", "taso": 2 },
+  { "sana": "HAKKU",  "tavut": ["HAK", "KU"],   "kuva": "⛏️", "aihe": "tyokalut", "taso": 2 },
+  { "sana": "TIILI",  "tavut": ["TII", "LI"],   "kuva": "🧱", "aihe": "tyokalut", "taso": 2 },
+  { "sana": "KETJU",  "tavut": ["KET", "JU"],   "kuva": "🔗", "aihe": "tyokalut", "taso": 2 },
+  { "sana": "LANKA",  "tavut": ["LAN", "KA"],   "kuva": "🧵", "aihe": "tyokalut", "taso": 2 },
 
   // Eläimet
   { "sana": "KALA",   "tavut": ["KA", "LA"],    "kuva": "🐟", "aihe": "elaimet", "taso": 1 },
