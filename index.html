@@ -16,20 +16,28 @@
   <section id="aloitus" class="nakyma">
     <h1>Lukupeli</h1>
     <div class="aloitus-kuvat">🐔 🚜 🪚</div>
+    <p class="kokonais">⭐ <span id="aloitus-kokonais">0</span></p>
     <button id="aloita-nappi" class="iso-nappi">Aloita</button>
   </section>
 
-  <!-- 2. Tehtävänäyttö (V-03, V-04) -->
+  <!-- 2. Tehtävänäyttö (V-03, V-04, V-09) -->
   <section id="tehtava" class="nakyma piilossa">
+    <div id="tahtilaskuri" class="tahtilaskuri">⭐ 0</div>
     <div id="edistyminen" class="edistyminen"></div>
     <div id="sana" class="sana"></div>
+    <!-- Tavuapu: täytetään JavaScriptillä, kun Apua-painiketta painetaan (V-10) -->
+    <div id="tavut" class="tavut piilossa"></div>
     <div id="kuvat" class="kuvat"></div>
+    <button id="apu-nappi" class="apu-nappi">👂 Apua</button>
+    <!-- Ansaitut tähdet ponnahtavat tähän oikean vastauksen jälkeen -->
+    <div id="palkinto" class="palkinto"></div>
   </section>
 
-  <!-- 3. Loppunäyttö -->
+  <!-- 3. Loppunäyttö (V-15) -->
   <section id="loppu" class="nakyma piilossa">
-    <h1>Hienoa!</h1>
-    <p class="loppu-teksti">Luit 10 sanaa.</p>
+    <h1 id="loppu-otsikko">Hienoa!</h1>
+    <p class="loppu-teksti">Sait <span id="kierroksen-tahdet">0</span> ⭐</p>
+    <p class="kokonais">Tähtiä yhteensä: <span id="loppu-kokonais">0</span></p>
     <button id="uudestaan-nappi" class="iso-nappi">Pelaa uudestaan</button>
   </section>
 
