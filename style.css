@@ -1,0 +1,130 @@
+/* ULKOASU
+   Kaikki on isoa, jotta pieni sormi osuu (V-17). Koot annetaan clamp()-funktiolla:
+   clamp(pienin, ihanne, suurin). "vw" tarkoittaa prosenttia ruudun leveydestä,
+   joten koko mukautuu iPadiin ja tietokoneeseen (V-18). */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif;
+  background: #fff8e7;
+  color: #333;
+  /* Estetään tekstin valitseminen ja tuplanapautuszoomaus kosketusnäytöllä */
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+/* Näkymä täyttää koko ruudun ja keskittää sisältönsä */
+.nakyma {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5vh;
+  padding: 20px;
+  text-align: center;
+}
+
+.piilossa {
+  display: none;
+}
+
+h1 {
+  font-size: clamp(48px, 9vw, 96px);
+  margin: 0;
+  color: #e07a1f;
+}
+
+.aloitus-kuvat {
+  font-size: clamp(48px, 10vw, 100px);
+}
+
+.loppu-teksti {
+  font-size: clamp(28px, 5vw, 48px);
+  margin: 0;
+}
+
+/* Iso vihreä painike */
+.iso-nappi {
+  font-family: inherit;
+  font-size: clamp(32px, 6vw, 56px);
+  font-weight: bold;
+  padding: 0.5em 1.5em;
+  border: none;
+  border-radius: 999px;
+  background: #4caf50;
+  color: #fff;
+  box-shadow: 0 6px 0 #2e7d32;
+  cursor: pointer;
+}
+
+.iso-nappi:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #2e7d32;
+}
+
+/* "3 / 10" oikeassa yläkulmassa */
+.edistyminen {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  font-size: 24px;
+  color: #aaa;
+}
+
+/* Luettava sana (V-03) */
+.sana {
+  font-size: clamp(64px, 16vw, 160px);
+  font-weight: bold;
+  letter-spacing: 0.08em;
+}
+
+/* Kuvavaihtoehdot rivissä (V-04) */
+.kuvat {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4vw;
+}
+
+.kuva {
+  font-size: clamp(60px, 13vw, 120px);
+  width: 1.6em;
+  height: 1.6em;
+  padding: 0;
+  line-height: 1;
+  background: #fff;
+  border: 6px solid #ddd;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.3s, border-color 0.2s, background 0.2s;
+}
+
+/* Oikea vastaus: vihreä reunus ja kuva kasvaa (V-07) */
+.kuva.oikein {
+  border-color: #4caf50;
+  background: #e8f5e9;
+  transform: scale(1.15);
+}
+
+/* Väärä vastaus: heilahdus ja himmennys (V-08) */
+.kuva.vaarin {
+  animation: heilahdus 0.4s;
+  opacity: 0.3;
+}
+
+@keyframes heilahdus {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-14px); }
+  75%      { transform: translateX(14px); }
+}

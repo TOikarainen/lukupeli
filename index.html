@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8">
+  <!-- Sovitetaan sivu laitteen leveyteen ja estetään vahingossa zoomaaminen -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Lukupeli</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- NÄKYMÄT: sivulla on kolme näkymää, joista yksi näkyy kerrallaan.
+       JavaScript vaihtaa näkymää lisäämällä ja poistamalla luokan "piilossa". -->
+
+  <!-- 1. Aloitusnäyttö (V-01) -->
+  <section id="aloitus" class="nakyma">
+    <h1>Lukupeli</h1>
+    <div class="aloitus-kuvat">🐔 🚜 🪚</div>
+    <button id="aloita-nappi" class="iso-nappi">Aloita</button>
+  </section>
+
+  <!-- 2. Tehtävänäyttö (V-03, V-04) -->
+  <section id="tehtava" class="nakyma piilossa">
+    <div id="edistyminen" class="edistyminen"></div>
+    <div id="sana" class="sana"></div>
+    <div id="kuvat" class="kuvat"></div>
+  </section>
+
+  <!-- 3. Loppunäyttö -->
+  <section id="loppu" class="nakyma piilossa">
+    <h1>Hienoa!</h1>
+    <p class="loppu-teksti">Luit 10 sanaa.</p>
+    <button id="uudestaan-nappi" class="iso-nappi">Pelaa uudestaan</button>
+  </section>
+
+  <!-- Skriptit ladataan lopuksi: ensin sanalista, sitten pelin logiikka -->
+  <script src="sanat.js"></script>
+  <script src="peli.js"></script>
+</body>
+</html>
