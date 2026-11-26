@@ -1,25 +1,28 @@
 // PELIN LOGIIKKA
 // Viittaukset V-xx ovat määrittelyn (MAARITTELY.md) vaatimusnumeroita.
+// Tallennukseen liittyvät funktiot (pelaajat, tähdet, tulokset) ovat tiedostossa tallennus.js.
 
 // --- Asetukset ---------------------------------------------------------
 const SANOJA_KIERROKSELLA = 10;      // V-02
-const VAIHTOEHTOJA = 3;              // V-04
-const TAUKO_OIKEAN_JALKEEN = 2000;   // millisekuntia ennen seuraavaa sanaa
+const VAIHTOEHTOJA = 6;              // V-04
 const AIKA_3_TAHTEA = 5000;          // V-14: alle 5 s = 3 tähteä
 const AIKA_2_TAHTEA = 10000;         // V-14: alle 10 s = 2 tähteä
-const TALLENNUSAVAIN = "lukupeli.tahdetYhteensa"; // V-16
+const TAVUN_VAHIMMAISAIKA = 500;     // V-28: tavun korostus vähintään näin kauan (ms)
+const SANAN_VAHIMMAISAIKA = 800;     // V-28: koko sanan korostus vähintään näin kauan (ms)
+const TAUKO_LUKEMISEN_JALKEEN = 700; // tauko ennen seuraavaa sanaa (ms)
+const PUHEEN_ENIMMAISAIKA = 3000;    // varmistus, jos selain ei ilmoita puheen loppumisesta
+const TULOSTAULUN_RIVIT = 10;        // V-25
+const KEHITYKSEN_KIERROKSET = 10;    // V-26
 
 // --- Pelin tila --------------------------------------------------------
-// Nämä muuttujat muistavat, missä kohtaa peliä ollaan.
 let kierroksenSanat = [];  // tämän kierroksen 10 sanaa
 let nykyinen = 0;          // monesko sana on menossa (0 = ensimmäinen)
 let oikeaSana = null;      // nykyisen tehtävän oikea sana (koko rivi sanalistasta)
 let lukittu = false;       // true = odotetaan siirtymää, napautuksia ei oteta vastaan
 let alkuaika = 0;          // milloin sana tuli näkyviin (V-13)
-let vaaraArvaus = false;   // onko tässä tehtävässä jo arvattu väärin
+let vaaraArvaus = false;   // onko tässä tehtävässä arvattu väärin
 let apuKaytetty = false;   // onko tässä tehtävässä avattu tavuapu
 let kierroksenTahdet = 0;  // tällä kierroksella kerätyt tähdet
-let kokonaistahdet = lueKokonaistahdet(); // kaikkien aikojen tähdet
 
 // --- Apufunktiot -------------------------------------------------------
 
@@ -28,8 +31,16 @@ function el(id) {
   return document.getElementById(id);
 }
 
+// Luo HTML-elementin. Teksti asetetaan textContentilla, joten pelaajan
+// nimessä olevat merkit eivät voi muuttua HTML-koodiksi.
+function luo(tagi, luokka, teksti) {
+  const elementti = document.createElement(tagi);
+  if (luokka) elementti.className = luokka;
+  if (teksti !== undefined) elementti.textContent = teksti;
+  return elementti;
+}
+
 // Palauttaa listan sekoitettuna satunnaiseen järjestykseen.
-// Alkuperäistä listaa ei muuteta.
 function sekoita(lista) {
   const kopio = [...lista];
   for (let i = kopio.length - 1; i > 0; i--) {
@@ -39,75 +50,127 @@ function sekoita(lista) {
   return kopio;
 }
 
+// Odottaa annetun ajan. Käytetään muodossa: await odota(500)
+function odota(ms) {
+  return new Promise(valmis => setTimeout(valmis, ms));
+}
+
+// Päivämäärä suomalaisessa muodossa: 26.11.2026
+function paivamaara(iso) {
+  const p = new Date(iso);
+  return p.getDate() + "." + (p.getMonth() + 1) + "." + p.getFullYear();
+}
+
 // Näyttää yhden näkymän ja piilottaa muut.
 function naytaNakyma(id) {
   document.querySelectorAll(".nakyma").forEach(n => n.classList.add("piilossa"));
   el(id).classList.remove("piilossa");
 }
 
-// Lausuu tekstin ääneen selaimen puhesynteesillä.
-// Jos ääntä ei ole saatavilla, ei tehdä mitään, ja peli toimii silti (V-19).
+// Lausuu tekstin ääneen ja palauttaa lupauksen (Promise), joka täyttyy, kun puhe loppuu.
+// Jos ääntä ei ole saatavilla, lupaus täyttyy heti, ja peli toimii silti (V-19).
 function puhu(teksti) {
-  if (!("speechSynthesis" in window)) return;
-  speechSynthesis.cancel(); // keskeytetään mahdollinen edellinen puhe
-  // Pienillä kirjaimilla, ettei puhesynteesi tavaa sanaa kirjain kerrallaan
-  const puhe = new SpeechSynthesisUtterance(teksti.toLowerCase());
-  puhe.lang = "fi-FI";
-  puhe.rate = 0.8; // hieman tavallista hitaammin
-  const suomiAani = speechSynthesis.getVoices().find(a => a.lang.startsWith("fi"));
-  if (suomiAani) puhe.voice = suomiAani;
-  speechSynthesis.speak(puhe);
+  return new Promise(valmis => {
+    if (!("speechSynthesis" in window)) {
+      valmis();
+      return;
+    }
+    if (speechSynthesis.speaking) speechSynthesis.cancel();
+    // Pienillä kirjaimilla, ettei puhesynteesi tavaa sanaa kirjain kerrallaan
+    const puhe = new SpeechSynthesisUtterance(teksti.toLowerCase());
+    puhe.lang = "fi-FI";
+    puhe.rate = 0.8;
+    const suomiAani = speechSynthesis.getVoices().find(a => a.lang.startsWith("fi"));
+    if (suomiAani) puhe.voice = suomiAani;
+
+    let loppui = false;
+    const lopeta = () => {
+      if (!loppui) {
+        loppui = true;
+        valmis();
+      }
+    };
+    puhe.onend = lopeta;
+    puhe.onerror = lopeta;
+    setTimeout(lopeta, PUHEEN_ENIMMAISAIKA);
+    speechSynthesis.speak(puhe);
+  });
 }
 
-// --- Tähdet ja tallennus -----------------------------------------------
+// --- Pelaaja (V-21…V-23) -----------------------------------------------
+
+// Sivun avautuessa: tunnettu pelaaja suoraan aloitukseen, muuten kysytään nimi.
+function kaynnista() {
+  if (nykyinenPelaaja()) {
+    naytaAloitus();
+  } else {
+    naytaPelaajanValinta();
+  }
+}
+
+function naytaPelaajanValinta() {
+  const nimet = pelaajienNimet();
+  el("pelaaja-otsikko").textContent = nimet.length ? "Kuka pelaa?" : "Mikä on nimesi?";
+  el("nimi-kentta").placeholder = nimet.length ? "Uusi pelaaja" : "Nimi";
+  el("nimi-kentta").value = "";
+
+  const lista = el("pelaajalista");
+  lista.innerHTML = "";
+  for (const nimi of nimet) {
+    const nappi = luo("button", "pelaaja-nappi", nimi);
+    if (nimi === nykyinenPelaaja()) nappi.classList.add("valittu");
+    nappi.addEventListener("click", () => {
+      valitsePelaaja(nimi);
+      naytaAloitus();
+    });
+    lista.appendChild(nappi);
+  }
+
+  // Takaisin-painike vain, jos pelaaja on jo valittu
+  el("pelaaja-takaisin").classList.toggle("piilossa", !nykyinenPelaaja());
+  naytaNakyma("pelaaja");
+}
+
+function uusiPelaaja(tapahtuma) {
+  tapahtuma.preventDefault(); // estetään lomakkeen oletustoiminto (sivun uudelleenlataus)
+  const kentta = el("nimi-kentta");
+  if (valitsePelaaja(kentta.value)) {
+    kentta.blur(); // piilotetaan iPadin näppäimistö
+    naytaAloitus();
+  } else {
+    kentta.focus();
+  }
+}
+
+// --- Tähdet ------------------------------------------------------------
 
 // V-14: montako tähteä oikeasta vastauksesta saa.
-// Oikeasta vastauksesta saa aina vähintään yhden tähden.
 function laskeTahdet(kestoMs, arvattuVaarin, apuaKaytetty) {
-  if (arvattuVaarin || apuaKaytetty) return 1;
+  if (arvattuVaarin) return 0;
+  if (apuaKaytetty) return 1;
   if (kestoMs < AIKA_3_TAHTEA) return 3;
   if (kestoMs < AIKA_2_TAHTEA) return 2;
   return 1;
 }
 
-// V-16: tähdet tallennetaan selaimen muistiin (localStorage), jossa ne
-// säilyvät, vaikka sivu suljetaan. try/catch varmistaa, että peli toimii,
-// vaikka selain ei sallisi tallentamista (esim. yksityinen selaus).
-function lueKokonaistahdet() {
-  try {
-    return parseInt(localStorage.getItem(TALLENNUSAVAIN), 10) || 0;
-  } catch (virhe) {
-    return 0;
-  }
-}
-
-function tallennaKokonaistahdet() {
-  try {
-    localStorage.setItem(TALLENNUSAVAIN, String(kokonaistahdet));
-  } catch (virhe) {
-    // Tallennus ei onnistunut. Peli jatkuu silti normaalisti.
-  }
-}
-
 // Näyttää ansaitut tähdet ponnahdusanimaationa ruudun keskellä.
+// Ilman tähtiä näytetään peukku, jotta oikea vastaus tuntuu silti hyvältä.
 function naytaPalkinto(tahdet) {
   const palkinto = el("palkinto");
-  palkinto.textContent = "⭐".repeat(tahdet);
-  // Animaatio käynnistetään uudelleen poistamalla ja lisäämällä luokka
+  palkinto.textContent = tahdet > 0 ? "⭐".repeat(tahdet) : "👍";
   palkinto.classList.remove("nayta");
-  void palkinto.offsetWidth; // pakottaa selaimen huomaamaan poiston
+  void palkinto.offsetWidth; // pakottaa selaimen huomaamaan poiston, jotta animaatio alkaa alusta
   palkinto.classList.add("nayta");
 }
 
 // --- Pelin kulku -------------------------------------------------------
 
-// Näyttää aloitusnäytön ja kerätyt tähdet (V-01).
 function naytaAloitus() {
-  el("aloitus-kokonais").textContent = kokonaistahdet;
+  el("pelaajan-nimi").textContent = nykyinenPelaaja();
+  el("aloitus-kokonais").textContent = pelaajanTahdet();
   naytaNakyma("aloitus");
 }
 
-// Aloittaa uuden kierroksen: arpoo 10 sanaa ja näyttää ensimmäisen.
 function aloitaKierros() {
   kierroksenSanat = sekoita(SANAT).slice(0, SANOJA_KIERROKSELLA);
   nykyinen = 0;
@@ -117,7 +180,15 @@ function aloitaKierros() {
   naytaTehtava();
 }
 
-// Näyttää nykyisen sanan ja kolme kuvavaihtoehtoa.
+// Arpoo väärät vaihtoehdot: eri sana eikä samaa sekoittuvien kuvien ryhmää (V-05).
+function arvoVaarat(oikea, maara) {
+  const sopivat = SANAT.filter(s =>
+    s.sana !== oikea.sana && !(oikea.ryhma && s.ryhma === oikea.ryhma)
+  );
+  return sekoita(sopivat).slice(0, maara);
+}
+
+// Näyttää nykyisen sanan ja kuusi kuvavaihtoehtoa.
 function naytaTehtava() {
   lukittu = false;
   vaaraArvaus = false;
@@ -131,88 +202,90 @@ function naytaTehtava() {
   el("apu-nappi").classList.remove("piilossa");
   el("edistyminen").textContent = (nykyinen + 1) + " / " + SANOJA_KIERROKSELLA;
 
-  // Väärät vaihtoehdot ovat muita listan sanoja (V-05),
-  // ja oikean kuvan paikka arvotaan (V-04).
-  const muut = SANAT.filter(s => s.sana !== oikeaSana.sana);
-  const vaarat = sekoita(muut).slice(0, VAIHTOEHTOJA - 1);
-  const vaihtoehdot = sekoita([oikeaSana, ...vaarat]);
+  const vaihtoehdot = sekoita([oikeaSana, ...arvoVaarat(oikeaSana, VAIHTOEHTOJA - 1)]);
 
-  // Tyhjennetään edelliset kuvat ja luodaan uudet painikkeet.
   const kuvat = el("kuvat");
   kuvat.innerHTML = "";
   for (const vaihtoehto of vaihtoehdot) {
-    const nappi = document.createElement("button");
-    nappi.className = "kuva";
-    nappi.textContent = vaihtoehto.kuva;
+    const nappi = luo("button", "kuva", vaihtoehto.kuva);
     nappi.addEventListener("click", () => valitse(nappi, vaihtoehto === oikeaSana));
     kuvat.appendChild(nappi);
   }
 
-  // Ajanotto alkaa nyt. Aikaa ei näytetä lapselle (V-13).
-  alkuaika = Date.now();
+  alkuaika = Date.now(); // ajanotto alkaa nyt, aikaa ei näytetä (V-13)
 }
 
-// Tavuapu: sana näytetään tavuina, joita napauttamalla kuulee tavun (V-10…V-12).
+// Rakentaa tavut ruudulle: KA – LA. Palauttaa tavuelementit.
+// Tavuavussa tavut ovat painikkeita, ääneenluvussa pelkkää tekstiä.
+function rakennaTavut(sana, painikkeina) {
+  const alue = el("tavut");
+  alue.innerHTML = "";
+  const tavuElementit = sana.tavut.map((tavu, i) => {
+    if (i > 0) alue.appendChild(luo("span", "tavu-viiva", "–"));
+    const tavuEl = luo(painikkeina ? "button" : "span", "tavu", tavu);
+    alue.appendChild(tavuEl);
+    return tavuEl;
+  });
+  el("sana").classList.add("piilossa");
+  alue.classList.remove("piilossa");
+  el("apu-nappi").classList.add("piilossa");
+  return tavuElementit;
+}
+
+// Tavuapu: tavua napauttamalla kuulee tavun, kaiutin lausuu koko sanan (V-10…V-12).
 function naytaTavuapu() {
   if (lukittu) return;
   apuKaytetty = true;
-
-  const tavut = el("tavut");
-  tavut.innerHTML = "";
-  oikeaSana.tavut.forEach((tavu, i) => {
-    // Tavujen väliin viiva: KA – LA
-    if (i > 0) {
-      const viiva = document.createElement("span");
-      viiva.className = "tavu-viiva";
-      viiva.textContent = "–";
-      tavut.appendChild(viiva);
-    }
-    const nappi = document.createElement("button");
-    nappi.className = "tavu";
-    nappi.textContent = tavu;
-    nappi.addEventListener("click", () => puhu(tavu)); // V-11
-    tavut.appendChild(nappi);
+  const tavuElementit = rakennaTavut(oikeaSana, true);
+  tavuElementit.forEach((tavuEl, i) => {
+    tavuEl.addEventListener("click", () => puhu(oikeaSana.tavut[i]));
   });
-
-  // Kaiutinpainike lausuu koko sanan (V-12)
-  const kuuntele = document.createElement("button");
-  kuuntele.className = "kuuntele";
-  kuuntele.textContent = "🔊";
+  const kuuntele = luo("button", "kuuntele", "🔊");
   kuuntele.addEventListener("click", () => puhu(oikeaSana.sana));
-  tavut.appendChild(kuuntele);
+  el("tavut").appendChild(kuuntele);
+}
 
-  el("sana").classList.add("piilossa");
-  el("tavut").classList.remove("piilossa");
-  el("apu-nappi").classList.add("piilossa");
+// V-28: tavut luetaan yksi kerrallaan korostettuina, lopuksi koko sana.
+// "async" tarkoittaa, että funktio voi odottaa (await) puheen loppumista.
+async function lueTavuittain(sana) {
+  const tavuElementit = rakennaTavut(sana, false);
+  for (let i = 0; i < tavuElementit.length; i++) {
+    tavuElementit[i].classList.add("korostus");
+    // Odotetaan, kunnes sekä puhe on loppunut että vähimmäisaika on kulunut
+    await Promise.all([puhu(sana.tavut[i]), odota(TAVUN_VAHIMMAISAIKA)]);
+    tavuElementit[i].classList.remove("korostus");
+  }
+  tavuElementit.forEach(t => t.classList.add("korostus"));
+  await Promise.all([puhu(sana.sana), odota(SANAN_VAHIMMAISAIKA)]);
 }
 
 // Kutsutaan, kun lapsi napauttaa kuvaa.
-function valitse(nappi, onOikein) {
+async function valitse(nappi, onOikein) {
   if (lukittu || nappi.disabled) return;
 
-  if (onOikein) {
-    // V-07: korostus, sana ääneen, tähdet, tauko ja seuraava sana
-    lukittu = true;
-    nappi.classList.add("oikein");
-    puhu(oikeaSana.sana);
-
-    const tahdet = laskeTahdet(Date.now() - alkuaika, vaaraArvaus, apuKaytetty);
-    kierroksenTahdet += tahdet;
-    kokonaistahdet += tahdet;
-    tallennaKokonaistahdet(); // tallennetaan heti, ettei mitään katoa
-    el("tahtilaskuri").textContent = "⭐ " + kierroksenTahdet;
-    naytaPalkinto(tahdet);
-
-    setTimeout(seuraava, TAUKO_OIKEAN_JALKEEN);
-  } else {
+  if (!onOikein) {
     // V-08: heilahdus ja himmennys, sitten saa yrittää uudelleen
     vaaraArvaus = true;
     nappi.classList.add("vaarin");
     nappi.disabled = true;
+    return;
   }
+
+  // V-07: korostus, tähdet, tavutettu ääneenluku ja seuraava sana
+  lukittu = true;
+  nappi.classList.add("oikein");
+
+  const tahdet = laskeTahdet(Date.now() - alkuaika, vaaraArvaus, apuKaytetty);
+  kierroksenTahdet += tahdet;
+  lisaaTahtia(tahdet); // tallennetaan heti, ettei mitään katoa
+  el("tahtilaskuri").textContent = "⭐ " + kierroksenTahdet;
+  naytaPalkinto(tahdet);
+
+  await lueTavuittain(oikeaSana);
+  await odota(TAUKO_LUKEMISEN_JALKEEN);
+  seuraava();
 }
 
-// Siirtyy seuraavaan sanaan tai loppunäyttöön.
 function seuraava() {
   nykyinen++;
   if (nykyinen >= SANOJA_KIERROKSELLA) {
@@ -222,22 +295,113 @@ function seuraava() {
   }
 }
 
-// Loppunäyttö: kierroksen tähdet ja kannustava viesti (V-15).
+// Loppunäyttö: tulos tallennetaan ja näytetään kannustava viesti (V-15, V-24).
 function naytaLoppu() {
+  const uusiEnnatys = tallennaTulos(kierroksenTahdet);
+
   const maksimi = SANOJA_KIERROKSELLA * 3;
   let otsikko = "Hyvin luettu!";
   if (kierroksenTahdet >= maksimi * 0.8) otsikko = "Mahtavaa!";
   else if (kierroksenTahdet >= maksimi * 0.5) otsikko = "Hienoa!";
 
   el("loppu-otsikko").textContent = otsikko;
+  el("ennatys").classList.toggle("piilossa", !uusiEnnatys);
   el("kierroksen-tahdet").textContent = kierroksenTahdet;
-  el("loppu-kokonais").textContent = kokonaistahdet;
+  el("loppu-kokonais").textContent = pelaajanTahdet();
   naytaNakyma("loppu");
 }
 
+// --- Tulostaulu (V-25, V-26) -------------------------------------------
+
+function naytaTulokset() {
+  // Parhaat kierrokset taulukkona
+  const parhaat = parhaatTulokset(TULOSTAULUN_RIVIT);
+  const runko = el("parhaat");
+  runko.innerHTML = "";
+  const mitalit = ["🥇", "🥈", "🥉"];
+  parhaat.forEach((tulos, i) => {
+    const rivi = luo("tr");
+    if (tulos.nimi === nykyinenPelaaja()) rivi.classList.add("oma");
+    rivi.appendChild(luo("td", "sija", mitalit[i] || String(i + 1)));
+    rivi.appendChild(luo("td", "nimi", tulos.nimi));
+    rivi.appendChild(luo("td", "pvm", paivamaara(tulos.pvm)));
+    rivi.appendChild(luo("td", "pisteet", "⭐ " + tulos.tahdet));
+    runko.appendChild(rivi);
+  });
+  el("ei-tuloksia").classList.toggle("piilossa", parhaat.length > 0);
+
+  // Pelaajavalinta kehitykselle, jos pelaajia on useampi
+  const valinnat = el("kehitys-pelaajat");
+  valinnat.innerHTML = "";
+  const nimet = pelaajienNimet();
+  if (nimet.length > 1) {
+    for (const nimi of nimet) {
+      const nappi = luo("button", "pelaaja-nappi pieni", nimi);
+      nappi.addEventListener("click", () => naytaKehitys(nimi));
+      valinnat.appendChild(nappi);
+    }
+  }
+  naytaKehitys(nykyinenPelaaja());
+  naytaNakyma("tulokset");
+}
+
+// Pylväskaavio pelaajan viimeisimmistä kierroksista. Pylvään korkeus on
+// tähtien osuus maksimista (30). Arvo näytetään paras- ja viimeisimmälle pylväälle.
+function naytaKehitys(nimi) {
+  document.querySelectorAll("#kehitys-pelaajat .pelaaja-nappi").forEach(n =>
+    n.classList.toggle("valittu", n.textContent === nimi)
+  );
+
+  const tulokset = viimeisimmatTulokset(nimi, KEHITYKSEN_KIERROKSET);
+  const kaavio = el("kehitys");
+  kaavio.innerHTML = "";
+
+  if (tulokset.length === 0) {
+    el("kehitys-yhteenveto").textContent = nimi + ": ei vielä kierroksia.";
+    kaavio.classList.add("piilossa");
+    return;
+  }
+
+  const maksimi = SANOJA_KIERROKSELLA * 3;
+  const paras = Math.max(...tulokset.map(t => t.tahdet));
+  const viimeisin = tulokset[tulokset.length - 1].tahdet;
+  el("kehitys-yhteenveto").textContent =
+    nimi + ": viimeisin ⭐ " + viimeisin + ", paras ⭐ " + parasTulos(nimi);
+  kaavio.setAttribute("aria-label",
+    nimi + " viimeiset " + tulokset.length + " kierrosta: " + tulokset.map(t => t.tahdet).join(", "));
+  kaavio.classList.remove("piilossa");
+
+  let parasMerkitty = false;
+  tulokset.forEach((tulos, i) => {
+    const sarake = luo("div", "kehitys-sarake");
+    sarake.title = paivamaara(tulos.pvm) + ": " + tulos.tahdet + " tähteä";
+
+    const onViimeisin = i === tulokset.length - 1;
+    const onParas = tulos.tahdet === paras && !parasMerkitty;
+    if (onParas) parasMerkitty = true;
+
+    const arvo = luo("div", "kehitys-arvo", onViimeisin || onParas ? String(tulos.tahdet) : "");
+    const alue = luo("div", "kehitys-alue");
+    const pylvas = luo("div", "kehitys-pylvas");
+    pylvas.style.height = Math.max(2, (tulos.tahdet / maksimi) * 100) + "%";
+    alue.appendChild(pylvas);
+
+    const p = new Date(tulos.pvm);
+    sarake.appendChild(arvo);
+    sarake.appendChild(alue);
+    sarake.appendChild(luo("div", "kehitys-pvm", p.getDate() + "." + (p.getMonth() + 1) + "."));
+    kaavio.appendChild(sarake);
+  });
+}
+
 // --- Käynnistys --------------------------------------------------------
-// Kytketään painikkeet funktioihin ja näytetään aloitusnäyttö.
 el("aloita-nappi").addEventListener("click", aloitaKierros);
 el("uudestaan-nappi").addEventListener("click", aloitaKierros);
+el("loppu-alkuun").addEventListener("click", naytaAloitus);
 el("apu-nappi").addEventListener("click", naytaTavuapu);
-naytaAloitus();
+el("vaihda-nappi").addEventListener("click", naytaPelaajanValinta);
+el("uusi-pelaaja").addEventListener("submit", uusiPelaaja);
+el("pelaaja-takaisin").addEventListener("click", naytaAloitus);
+el("tulokset-nappi").addEventListener("click", naytaTulokset);
+el("tulokset-takaisin").addEventListener("click", naytaAloitus);
+kaynnista();

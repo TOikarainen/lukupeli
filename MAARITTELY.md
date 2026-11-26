@@ -1,167 +1,143 @@
-# Lukupeli – määrittely (versio 1)
+# Lukupeli – määrittely (versio 2)
+
+## Muutoshistoria
+
+| Versio | Päivä | Muutokset |
+|---|---|---|
+| 1 | 23.11.2026 | Ensimmäinen versio: harjoitus A, tavuapu, tähdet |
+| 2 | 26.11.2026 | 100 sanaa (joista 10 kolmitavuista), 6 kuvavaihtoehtoa, väärä arvaus = 0 tähteä, pelaajat ja tulostaulu, tavutettu ääneenluku korostuksella, selkeämpi fontti |
+
+Muutetut vaatimukset on merkitty **(v2)**, uudet **(uusi v2)**. Vaatimusnumerot pysyvät samoina, jotta
+testitapaukset voi jäljittää versiosta toiseen.
 
 ## 1. Tavoite
 
 Sovellus auttaa 5-vuotiasta lasta, joka tuntee kirjaimet, oppimaan lukemaan kokonaisia
-suomenkielisiä sanoja. Ensimmäisessä versiossa sanat ovat 4–6-kirjaimisia ja kaksitavuisia
-ja ne kirjoitetaan isoilla kirjaimilla.
+suomenkielisiä sanoja. Sanat ovat pääosin 4–6-kirjaimisia ja kaksitavuisia, ja mukana on
+10 kolmitavuista sanaa. Kaikki sanat kirjoitetaan isoilla kirjaimilla.
 
 ## 2. Käyttäjät ja käyttötilanne
 
 - **Pääkäyttäjä:** 5-vuotias lapsi. Ei osaa kirjoittaa, lukee isoja kirjaimia.
-- **Tukikäyttäjä:** Aikuinen istuu aluksi vieressä, käynnistää pelin ja auttaa tarvittaessa.
-- **Laitteet:** iPad (Safari, kosketusnäyttö) ja kehitysvaiheessa Windows-tietokoneen selain.
+- **Tukikäyttäjä:** Aikuinen istuu aluksi vieressä, syöttää pelaajan nimen ja auttaa tarvittaessa.
+- **Laitteet:** iPad (Safari, kotivalikkoon lisättynä) ja Windows-tietokoneen selain.
 
 ## 3. Tekninen ratkaisu
 
-- Verkkosivu: HTML (rakenne), CSS (ulkoasu), JavaScript (toiminta).
-- Sanalista JSON-tiedostossa, jotta sanoja voi lisätä koodiin koskematta.
-- Kuvat ovat emojeita, joten kuvatiedostoja ei tarvita.
+- Verkkosivu: HTML (rakenne), CSS (ulkoasu), JavaScript (toiminta). Julkaistu GitHub Pagesissa.
+- Sanalista tiedostossa `sanat.js` (JSON-muotoinen).
+- Kuvat ovat emojeita. Jokaisen kuvan on näyttävä sekä Windows 10:ssä että iPadilla.
 - Ääni tulee selaimen omasta puhesynteesistä (suomenkielinen ääni).
-- Ei kirjautumista eikä palvelinta. Tiedot tallennetaan vain laitteelle.
+- Ei kirjautumista eikä palvelinta. Pelaajat, tähdet ja tulokset tallennetaan laitteelle (localStorage).
+
+### Pelaajan tunnistaminen
+Pelaaja tunnistetaan **laitteen** perusteella: laite muistaa, kuka pelasi viimeksi.
+IP-osoitetta ei voi käyttää, koska:
+- sivulla ei ole palvelinta, joka näkisi IP-osoitteen, ja
+- kaikilla kodin laitteilla on sama julkinen IP-osoite, joka myös vaihtuu ajoittain.
+
+**Rajoitukset, jotka on hyvä tietää:**
+- Pelaajat ja tulokset näkyvät vain sillä laitteella, jolla on pelattu.
+- iPadissa kotivalikkoon lisätyllä pelillä ja Safari-välilehdellä on **eri muisti**. Pelaa aina samasta paikasta.
+- Laitteiden yhteinen tulostaulu vaatisi palvelimen (ks. rajaukset).
 
 ## 4. Toiminnalliset vaatimukset
 
-### Aloitus
-- **V-01** Aloitusnäytössä on iso "Aloita"-painike ja kerätyt tähdet yhteensä.
+### Pelaaja ja aloitus
+- **V-01 (v2)** Aloitusnäytössä on iso "Aloita"-painike, tervehdys pelaajan nimellä ja pelaajan kerätyt tähdet.
+- **V-21 (uusi v2)** Laite muistaa viimeksi pelanneen pelaajan.
+- **V-22 (uusi v2)** Jos laitteella ei ole yhtään pelaajaa, pelaajan nimi kysytään ennen ensimmäistä peliä.
+- **V-23 (uusi v2)** Aloitusnäytössä on "Vaihda pelaaja" -painike, josta voi valita aiemman pelaajan tai lisätä uuden. Nimi on 1–20 merkkiä. Isot ja pienet kirjaimet eivät erota pelaajia (Eetu = EETU).
 - **V-02** Peli koostuu 10 sanan kierroksesta.
 
 ### Harjoitus A: Sana ja kuvat
 - **V-03** Ruudun yläosassa näkyy yksi sana isoilla kirjaimilla ja suurella fontilla.
-- **V-04** Sanan alla on 3 kuvaa (emojia), joista yksi vastaa sanaa. Oikean kuvan paikka arvotaan.
-- **V-05** Väärät vaihtoehdot ovat muita listan sanoja. Sama kuva ei esiinny kahdesti samassa tehtävässä.
-- **V-06** Sanaa **ei** lausuta automaattisesti, koska tarkoitus on, että lapsi lukee sen itse.
-- **V-07** Oikea vastaus: kuva korostuu, sovellus lausuu sanan ääneen, tähdet lisätään ja peli siirtyy seuraavaan sanaan pienen tauon jälkeen.
-- **V-08** Väärä vastaus: kuva heilahtaa lyhyesti ja himmenee. Ei rangaistusta, vaan lapsi voi yrittää uudelleen.
+- **V-04 (v2)** Sanan alla on **6 kuvaa** ruudukossa, joista yksi vastaa sanaa. Oikean kuvan paikka arvotaan.
+- **V-05 (v2)** Väärät vaihtoehdot ovat muita listan sanoja. Sama kuva ei esiinny kahdesti. Väärä vaihtoehto ei ole samasta **sekoittuvien kuvien ryhmästä** kuin oikea sana (esim. KARHU 🐻 ja NALLE 🧸 eivät ole samassa tehtävässä).
+- **V-06** Sanaa **ei** lausuta ennen vastausta, koska tarkoitus on, että lapsi lukee sen itse.
+- **V-07 (v2)** Oikea vastaus: kuva korostuu, tähdet lisätään, sana näytetään tavuina ja luetaan ääneen (V-28). Sen jälkeen peli siirtyy seuraavaan sanaan.
+- **V-28 (uusi v2)** Tavutettu ääneenluku: tavut luetaan yksi kerrallaan, ja luettava tavu korostetaan. Lopuksi luetaan koko sana, ja kaikki tavut korostetaan. Jos ääntä ei ole, korostus etenee ajastettuna.
+- **V-08** Väärä vastaus: kuva heilahtaa lyhyesti ja himmenee. Lapsi voi yrittää uudelleen.
 
 ### Harjoitus C: Tavuapu
-- **V-09** Tehtävänäytössä on "Apua"-painike (esim. 🔊 tai korvan kuva).
+- **V-09** Tehtävänäytössä on "Apua"-painike.
 - **V-10** Painettaessa sana näytetään tavuihin jaettuna: KA – LA.
 - **V-11** Tavua napauttamalla sovellus lausuu sen tavun.
 - **V-12** Erillisestä painikkeesta sovellus lausuu koko sanan.
 
 ### Pisteytys (tähdet)
-- **V-13** Ajanotto alkaa, kun sana tulee näkyviin. Aikaa **ei** näytetä lapselle, ettei tule kiire.
-- **V-14** Tähdet sanaa kohden:
+- **V-13** Ajanotto alkaa, kun sana tulee näkyviin. Aikaa **ei** näytetä lapselle.
+- **V-14 (v2)** Tähdet sanaa kohden:
 
   | Tilanne | Tähdet |
   |---|---|
-  | Oikein ensimmäisellä yrityksellä, alle 5 s | ⭐⭐⭐ |
-  | Oikein ensimmäisellä yrityksellä, 5–10 s | ⭐⭐ |
-  | Oikein yli 10 s, väärän arvauksen jälkeen tai tavuavun kanssa | ⭐ |
+  | Yksikin väärä arvaus | 0 |
+  | Tavuapu käytössä, ei vääriä arvauksia | ⭐ |
+  | Oikein ilman apua, yli 10 s | ⭐ |
+  | Oikein ilman apua, 5–10 s | ⭐⭐ |
+  | Oikein ilman apua, alle 5 s | ⭐⭐⭐ |
 
-  Jokaisesta oikeasta vastauksesta saa siis aina vähintään yhden tähden. Avun käyttämisestä ei rangaista.
-- **V-15** Kierroksen lopussa näytetään kierroksen tähdet ja kannustava viesti.
-- **V-16** Kokonaistähdet tallentuvat laitteelle ja säilyvät, vaikka sivu suljetaan.
+  Arvaaminen ei siis kannata, mutta avun käyttämisestä saa silti tähden. Kierroksen maksimi on 30 tähteä.
+- **V-15 (v2)** Kierroksen lopussa näytetään kierroksen tähdet ja kannustava viesti. Jos tulos on pelaajan uusi ennätys, siitä kerrotaan.
+- **V-16 (v2)** Kerätyt tähdet tallennetaan pelaajakohtaisesti laitteelle. Version 1 tähdet siirtyvät laitteen ensimmäiselle pelaajalle.
+
+### Tulostaulu
+- **V-24 (uusi v2)** Jokaisesta loppuun pelatusta kierroksesta tallennetaan pelaajan nimi, päivämäärä ja tähdet.
+- **V-25 (uusi v2)** Aloitusnäytön "🏆 Tulokset" -painike avaa tulostaulun, jossa on laitteen 10 parasta kierrosta (sija, nimi, päivämäärä, tähdet). Tasatuloksissa aiemmin saavutettu on ylempänä.
+- **V-26 (uusi v2)** Tulostaulussa näkyy valitun pelaajan kehitys: 10 viimeisintä kierrosta pylväinä. Pelaajan voi valita, jos pelaajia on useampi.
+- **V-27 (uusi v2)** Kesken jätetty kierros ei tallennu tulostauluun. Sen aikana ansaitut tähdet jäävät kuitenkin kokonaismäärään.
 
 ### Yleistä
 - **V-17** Kaikki painikkeet ja kuvat ovat isoja ja helppoja napauttaa sormella.
 - **V-18** Sovellus toimii iPadilla vaaka- ja pystyasennossa.
-- **V-19** Jos laitteessa ei ole suomenkielistä ääntä, peli toimii silti ilman ääntä.
+- **V-19** Jos laitteessa ei ole suomenkielistä ääntä, peli toimii silti.
+- **V-20 (uusi v2)** Fonttina on Andika, joka on suunniteltu lukemaan opetteleville. Jos fontti ei lataudu (esim. ei verkkoyhteyttä), käytetään laitteen omaa fonttia.
 
-## 5. Sanalista (50 sanaa)
+## 5. Sanalista (100 sanaa)
 
-Lapsen lempiaiheet ovat maatila, työkoneet ja työkalut.
+Sanalista on tiedostossa `sanat.js`. Se on listan **ainoa virallinen lähde**, joten sanoja ei toisteta tässä.
 
 **Taso** kertoo sanan vaikeuden:
-- **1** = helppo: pelkkiä lyhyitä avotavuja (KA-LA, SA-HA)
-- **2** = vaikeampi: sanassa on kaksoiskonsonantti (KIS-SA), pitkä vokaali (HII-RI) tai diftongi (AU-TO, KOI-RA)
+- **1** = kaksitavuinen, pelkkiä lyhyitä avotavuja (KA-LA, MA-TO), 17 sanaa
+- **2** = kaksitavuinen, jossa on kaksoiskonsonantti, pitkä vokaali tai diftongi (KIS-SA, HII-RI, AU-TO), 73 sanaa
+- **3** = kolmitavuinen (TRAK-TO-RI, VA-SA-RA), 10 sanaa
 
-Versiossa 1 kaikki sanat arvotaan samasta joukosta. Taso ja aihe tallennetaan jo nyt, jotta
-myöhemmin voi tehdä vaikeustasot ja aihevalinnan.
+Versiossa 2 kaikki sanat arvotaan samasta joukosta.
 
-### Maatila (13)
-| Sana | Tavut | Kuva | Taso |
-|---|---|---|---|
-| KANA | KA-NA | 🐔 | 1 |
-| TIPU | TI-PU | 🐤 | 1 |
-| MUNA | MU-NA | 🥚 | 1 |
-| LEHMÄ | LEH-MÄ | 🐄 | 2 |
-| POSSU | POS-SU | 🐷 | 2 |
-| LAMMAS | LAM-MAS | 🐑 | 2 |
-| VUOHI | VUO-HI | 🐐 | 2 |
-| HEPPA | HEP-PA | 🐴 | 2 |
-| ANKKA | ANK-KA | 🦆 | 2 |
-| MAISSI | MAIS-SI | 🌽 | 2 |
-| VILJA | VIL-JA | 🌾 | 2 |
-| KURKKU | KURK-KU | 🥒 | 2 |
-| KAALI | KAA-LI | 🥬 | 2 |
+**Aiheet:** maatila 18, eläimet 18, työkalut 13, ajoneuvot 12, koti 11, luonto 9, vaatteet 8, ruoka 7, keho 4.
 
-### Ajoneuvot ja koneet (9)
-| Sana | Tavut | Kuva | Taso |
-|---|---|---|---|
-| JUNA | JU-NA | 🚆 | 1 |
-| MOPO | MO-PO | 🛵 | 1 |
-| VENE | VE-NE | ⛵ | 1 |
-| AUTO | AU-TO | 🚗 | 2 |
-| LAIVA | LAI-VA | 🚢 | 2 |
-| REKKA | REK-KA | 🚛 | 2 |
-| BUSSI | BUS-SI | 🚌 | 2 |
-| PYÖRÄ | PYÖ-RÄ | 🚲 | 2 |
-| KELKKA | KELK-KA | 🛷 | 2 |
+**Sekoittuvien kuvien ryhmät** (kentässä `ryhma`): sanat, joiden kuvat näyttävät pienellä
+ruudulla toisiltaan, eivät ole samassa tehtävässä oikeana ja vääränä vaihtoehtona:
+- hevonen: HEPPA, SEEPRA
+- karhu: KARHU, PANDA, NALLE
+- koira: KOIRA, KETTU
+- kanalintu: KANA, TIPU, KALKKUNA
+- isku: HAKKU, VASARA
+- vihannes: KURKKU, KAALI
+- vaate: PAITA, TAKKI
+- kala: KALA, VALAS
+- kuorma: REKKA, TRAKTORI
 
-### Työkalut (12)
-| Sana | Tavut | Kuva | Taso |
-|---|---|---|---|
-| KYNÄ | KY-NÄ | ✏️ | 1 |
-| KIRVES | KIR-VES | 🪓 | 2 |
-| RUUVI | RUU-VI | 🔩 | 2 |
-| AVAIN | A-VAIN | 🔑 | 2 |
-| SAKSET | SAK-SET | ✂️ | 2 |
-| LUKKO | LUK-KO | 🔒 | 2 |
-| LUUTA | LUU-TA | 🧹 | 2 |
-| VAAKA | VAA-KA | ⚖️ | 2 |
-| HAKKU | HAK-KU | ⛏️ | 2 |
-| TIILI | TII-LI | 🧱 | 2 |
-| KETJU | KET-JU | 🔗 | 2 |
-| LANKA | LAN-KA | 🧵 | 2 |
+**Huomioita:**
+- Uudemmat emojit eivät näy Windows 10:ssä. Siksi SAHA, SANKO, KÖYSI ja NEULA korvattiin versiossa 1. Uuden sanan kuva pitää tarkistaa sekä tietokoneella että iPadilla.
+- 👂 (KORVA) ja ⭐ (TÄHTI) jätettiin pois, koska ne ovat käytössä pelin painikkeissa ja pisteissä.
 
-### Eläimet (7)
-| Sana | Tavut | Kuva | Taso |
-|---|---|---|---|
-| KALA | KA-LA | 🐟 | 1 |
-| PUPU | PU-PU | 🐰 | 1 |
-| KISSA | KIS-SA | 🐱 | 2 |
-| KARHU | KAR-HU | 🐻 | 2 |
-| HIIRI | HII-RI | 🐭 | 2 |
-| KOIRA | KOI-RA | 🐶 | 2 |
-| KUKKA | KUK-KA | 🌸 | 2 |
+## 6. Rajaukset (ei kuulu versioon 2)
 
-### Koti ja arki (9)
-| Sana | Tavut | Kuva | Taso |
-|---|---|---|---|
-| TALO | TA-LO | 🏠 | 1 |
-| PALLO | PAL-LO | ⚽ | 2 |
-| SUKKA | SUK-KA | 🧦 | 2 |
-| KELLO | KEL-LO | ⏰ | 2 |
-| NALLE | NAL-LE | 🧸 | 2 |
-| KIRJA | KIR-JA | 📖 | 2 |
-| KENKÄ | KEN-KÄ | 👟 | 2 |
-| MAITO | MAI-TO | 🥛 | 2 |
-| LEIPÄ | LEI-PÄ | 🍞 | 2 |
-
-**Huomioita sanavalinnoista:**
-- Monet aiheen tärkeimmistä sanoista ovat kolmitavuisia: TRAKTORI 🚜, KAIVURI, NOSTURI, VASARA 🔨, LAPIO, HARAVA. Ne sopivat seuraavalle vaikeustasolle.
-- Mukaan ei otettu sanoja, joiden kuva sekoittuisi toiseen (esim. KUKKO 🐓 ja KANA 🐔, TAKSI 🚕 ja AUTO 🚗).
-- Uudemmat emojit eivät näy Windows 10:ssä (testauksessa havaittu). Siksi SAHA, SANKO, KÖYSI ja NEULA
-  korvattiin sanoilla HAKKU, TIILI, KETJU ja LANKA. Uusia sanoja lisättäessä kuva pitää tarkistaa sekä
-  tietokoneella että iPadilla.
-
-## 6. Rajaukset (ei kuulu versioon 1)
-
+- Laitteiden yhteinen tulostaulu (vaatisi palvelimen ja lapsen nimen tallentamisen verkkoon)
+- Vaikeustason tai aiheen valinta
 - Pienet kirjaimet
-- Kolmi- ja useampitavuiset sanat
-- Vaikeustasot
 - Harjoitukset B (kuva ja sanat) ja D (lue ääneen aikuiselle)
-- Useampi pelaaja tai profiili
-- Aikuisen asetusnäkymä (esim. sanojen valinta)
+- Pelaajan tai tulosten poistaminen
+- Aikuisen asetusnäkymä
 
 ## 7. Avoimet kysymykset
 
-- Ovatko aikarajat (5 s ja 10 s) sopivat? Tarkistetaan testauksessa lapsen kanssa.
+- Ovatko aikarajat (5 s ja 10 s) sopivat, kun vaihtoehtoja on 6?
+- Kuulostavatko yksittäiset tavut (esim. "kurk", "kalk") puhesynteesillä luontevilta?
 
-## 8. Hyväksymiskriteerit (versio 1 valmis, kun)
+## 8. Hyväksymiskriteerit (versio 2 valmis, kun)
 
-1. Aikuinen saa avattua pelin iPadilla ja lapsi pelaa 10 sanan kierroksen loppuun.
-2. Kaikki vaatimukset V-01…V-19 on testattu.
-3. Lapsi ymmärtää aikuisen lyhyen opastuksen jälkeen, mitä pitää tehdä.
+1. Uusi pelaaja voi syöttää nimensä ja pelata 10 sanan kierroksen loppuun iPadilla.
+2. Tulos näkyy tulostaulussa ja kehityksessä nimen ja päivämäärän kanssa.
+3. Kaikki vaatimukset V-01…V-28 on testattu.

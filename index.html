@@ -5,27 +5,51 @@
   <!-- Sovitetaan sivu laitteen leveyteen ja estetään vahingossa zoomaaminen -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Lukupeli</title>
+  <!-- Andika-fontti on suunniteltu lukemaan opetteleville (V-20).
+       media="print" + onload lataa fontin taustalla, joten peli ei jää
+       odottamaan, jos verkkoyhteys on hidas tai puuttuu. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap"
+        media="print" onload="this.media='all'">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- NÄKYMÄT: sivulla on kolme näkymää, joista yksi näkyy kerrallaan.
+  <!-- NÄKYMÄT: sivulla on viisi näkymää, joista yksi näkyy kerrallaan.
        JavaScript vaihtaa näkymää lisäämällä ja poistamalla luokan "piilossa". -->
 
   <!-- 1. Aloitusnäyttö (V-01) -->
-  <section id="aloitus" class="nakyma">
+  <section id="aloitus" class="nakyma piilossa">
     <h1>Lukupeli</h1>
-    <div class="aloitus-kuvat">🐔 🚜 🪚</div>
+    <div class="aloitus-kuvat">🐔 🚜 🔨</div>
+    <p class="tervehdys">HEI, <span id="pelaajan-nimi"></span>!</p>
     <p class="kokonais">⭐ <span id="aloitus-kokonais">0</span></p>
     <button id="aloita-nappi" class="iso-nappi">Aloita</button>
+    <div class="pienet-napit">
+      <button id="tulokset-nappi" class="pieni-nappi">🏆 Tulokset</button>
+      <button id="vaihda-nappi" class="pieni-nappi">👤 Vaihda pelaaja</button>
+    </div>
   </section>
 
-  <!-- 2. Tehtävänäyttö (V-03, V-04, V-09) -->
+  <!-- 2. Pelaajan valinta (V-22, V-23) -->
+  <section id="pelaaja" class="nakyma piilossa">
+    <h2 id="pelaaja-otsikko">Kuka pelaa?</h2>
+    <div id="pelaajalista" class="pelaajalista"></div>
+    <form id="uusi-pelaaja" class="uusi-pelaaja">
+      <input id="nimi-kentta" type="text" maxlength="20" placeholder="Uusi pelaaja"
+             autocomplete="off" autocapitalize="words" spellcheck="false">
+      <button type="submit" class="iso-nappi pieni-iso">OK</button>
+    </form>
+    <button id="pelaaja-takaisin" class="pieni-nappi">← Takaisin</button>
+  </section>
+
+  <!-- 3. Tehtävänäyttö (V-03, V-04, V-09) -->
   <section id="tehtava" class="nakyma piilossa">
     <div id="tahtilaskuri" class="tahtilaskuri">⭐ 0</div>
     <div id="edistyminen" class="edistyminen"></div>
     <div id="sana" class="sana"></div>
-    <!-- Tavuapu: täytetään JavaScriptillä, kun Apua-painiketta painetaan (V-10) -->
+    <!-- Tavut: tavuapu (V-10) ja tavutettu ääneenluku (V-28) -->
     <div id="tavut" class="tavut piilossa"></div>
     <div id="kuvat" class="kuvat"></div>
     <button id="apu-nappi" class="apu-nappi">👂 Apua</button>
@@ -33,16 +57,35 @@
     <div id="palkinto" class="palkinto"></div>
   </section>
 
-  <!-- 3. Loppunäyttö (V-15) -->
+  <!-- 4. Loppunäyttö (V-15) -->
   <section id="loppu" class="nakyma piilossa">
     <h1 id="loppu-otsikko">Hienoa!</h1>
+    <p id="ennatys" class="ennatys piilossa">🏆 Uusi ennätys!</p>
     <p class="loppu-teksti">Sait <span id="kierroksen-tahdet">0</span> ⭐</p>
     <p class="kokonais">Tähtiä yhteensä: <span id="loppu-kokonais">0</span></p>
     <button id="uudestaan-nappi" class="iso-nappi">Pelaa uudestaan</button>
+    <button id="loppu-alkuun" class="pieni-nappi">🏠 Alkuun</button>
   </section>
 
-  <!-- Skriptit ladataan lopuksi: ensin sanalista, sitten pelin logiikka -->
+  <!-- 5. Tulostaulu (V-25, V-26) -->
+  <section id="tulokset" class="nakyma tulokset-nakyma piilossa">
+    <h2>🏆 Parhaat tulokset</h2>
+    <table class="parhaat">
+      <tbody id="parhaat"></tbody>
+    </table>
+    <p id="ei-tuloksia" class="ei-tuloksia piilossa">Ei vielä pelattuja kierroksia.</p>
+
+    <h2>Kehitys</h2>
+    <div id="kehitys-pelaajat" class="kehitys-pelaajat"></div>
+    <p id="kehitys-yhteenveto" class="kehitys-yhteenveto"></p>
+    <div id="kehitys" class="kehitys" role="img"></div>
+
+    <button id="tulokset-takaisin" class="pieni-nappi">← Takaisin</button>
+  </section>
+
+  <!-- Skriptit ladataan lopuksi: sanalista, tallennus ja pelin logiikka -->
   <script src="sanat.js"></script>
+  <script src="tallennus.js"></script>
   <script src="peli.js"></script>
 </body>
 </html>
