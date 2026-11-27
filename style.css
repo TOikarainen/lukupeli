@@ -4,6 +4,31 @@
    "vw" = prosenttia ruudun leveydestä, "vh" = prosenttia korkeudesta,
    joten koko mukautuu iPadiin ja tietokoneeseen (V-18). */
 
+/* VÄRIT
+   Kaikki värit määritellään tässä yhdessä paikassa muuttujina (--nimi).
+   Muualla viitataan niihin muodossa var(--nimi). Kun haluat vaihtaa värin,
+   riittää muuttaa se tästä. Tehostevärit ovat sinisen ja vihreän välillä. */
+:root {
+  --tausta: #f5f5f7;          /* vaaleanharmaa sivun tausta */
+  --pinta: #ffffff;           /* kortit ja painikkeet */
+  --teksti: #1d1d1f;          /* pääteksti */
+  --teksti-2: #6e6e73;        /* toissijainen teksti */
+  --teksti-3: #a1a1a6;        /* himmeä teksti ja viivat */
+  --reuna: #e5e5ea;           /* ohuet reunat ja erottimet */
+
+  --sininen: #007aff;         /* päätehoste: painikkeet, valinnat */
+  --sininen-tumma: #0060df;
+  --sininen-vaalea: #e8f1ff;
+  --turkoosi: #2ab3c9;        /* sinisen ja vihreän välisävy */
+  --vihrea: #34c759;          /* onnistuminen: oikea vastaus, ennätys */
+  --vihrea-tumma: #248a3d;
+  --vihrea-vaalea: #e3f8e8;
+
+  --varjo: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.06);
+  --varjo-iso: 0 2px 4px rgba(0, 0, 0, 0.05), 0 12px 32px rgba(0, 0, 0, 0.08);
+  --kulma: 22px;              /* korttien pyöristys */
+}
+
 * {
   box-sizing: border-box;
 }
@@ -16,19 +41,26 @@ html, body {
 body {
   /* Andika on suunniteltu lukemaan opetteleville (V-20). Jos se ei lataudu,
      käytetään seuraavaa listalla olevaa fonttia. */
-  font-family: "Andika", "Trebuchet MS", Arial, sans-serif;
+  font-family: "Andika", -apple-system, "Segoe UI", Arial, sans-serif;
   text-transform: uppercase; /* lapsi lukee isoja kirjaimia */
-  background: #fff8e7;
-  color: #333;
+  background: var(--tausta);
+  color: var(--teksti);
+  -webkit-font-smoothing: antialiased;
   /* Estetään tekstin valitseminen ja tuplanapautuszoomaus kosketusnäytöllä */
   -webkit-user-select: none;
   user-select: none;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button, input {
   font-family: inherit;
   text-transform: inherit;
+}
+
+button {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 /* Näkymä täyttää koko ruudun ja keskittää sisältönsä */
@@ -49,16 +81,22 @@ button, input {
   display: none !important;
 }
 
+/* Pääotsikko liukuvärillä sinisestä vihreään */
 h1 {
   font-size: clamp(44px, 8vw, 88px);
   margin: 0;
-  color: #e07a1f;
+  letter-spacing: -0.01em;
+  color: var(--sininen);
+  background: linear-gradient(90deg, var(--sininen), var(--turkoosi), var(--vihrea));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 h2 {
-  font-size: clamp(28px, 5vw, 44px);
+  font-size: clamp(26px, 4.5vw, 40px);
   margin: 0;
-  color: #e07a1f;
+  color: var(--teksti);
 }
 
 .aloitus-kuvat {
@@ -77,30 +115,34 @@ h2 {
 }
 
 .ennatys {
-  font-size: clamp(28px, 5vw, 48px);
+  font-size: clamp(26px, 4.5vw, 44px);
   font-weight: bold;
-  color: #e07a1f;
+  color: var(--vihrea-tumma);
+  background: var(--vihrea-vaalea);
+  padding: 0.25em 0.9em;
+  border-radius: 999px;
   margin: 0;
 }
 
 /* --- Painikkeet ------------------------------------------------------- */
 
-/* Iso vihreä painike */
+/* Iso pääpainike */
 .iso-nappi {
   font-size: clamp(30px, 6vw, 54px);
   font-weight: bold;
-  padding: 0.45em 1.4em;
+  padding: 0.45em 1.5em;
   border: none;
   border-radius: 999px;
-  background: #4caf50;
+  background: linear-gradient(180deg, #1a88ff, var(--sininen));
   color: #fff;
-  box-shadow: 0 6px 0 #2e7d32;
+  box-shadow: 0 4px 14px rgba(0, 122, 255, 0.3);
   cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
 }
 
 .iso-nappi:active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 #2e7d32;
+  transform: scale(0.97);
+  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
 }
 
 .iso-nappi.pieni-iso {
@@ -113,17 +155,23 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .pieni-nappi {
-  font-size: clamp(18px, 2.6vw, 24px);
-  padding: 0.5em 1em;
-  border: 3px solid #ddd;
+  font-size: clamp(17px, 2.4vw, 22px);
+  font-weight: bold;
+  padding: 0.6em 1.2em;
+  border: none;
   border-radius: 999px;
-  background: #fff;
-  color: #555;
+  background: var(--pinta);
+  color: var(--sininen);
+  box-shadow: var(--varjo);
   cursor: pointer;
+}
+
+.pieni-nappi:active {
+  background: var(--sininen-vaalea);
 }
 
 /* --- Pelaajan valinta ------------------------------------------------- */
@@ -139,22 +187,23 @@ h2 {
 .pelaaja-nappi {
   font-size: clamp(24px, 4vw, 36px);
   font-weight: bold;
-  padding: 0.4em 1em;
-  border: 4px solid #90caf9;
-  border-radius: 20px;
-  background: #fff;
-  color: #1565c0;
+  padding: 0.45em 1.1em;
+  border: none;
+  border-radius: 18px;
+  background: var(--pinta);
+  color: var(--teksti);
+  box-shadow: var(--varjo);
   cursor: pointer;
 }
 
 .pelaaja-nappi.pieni {
-  font-size: clamp(18px, 2.6vw, 24px);
-  border-width: 3px;
+  font-size: clamp(17px, 2.4vw, 22px);
 }
 
 .pelaaja-nappi.valittu {
-  background: #e3f2fd;
-  border-color: #1565c0;
+  background: var(--sininen-vaalea);
+  color: var(--sininen-tumma);
+  box-shadow: 0 0 0 3px var(--sininen);
 }
 
 .uusi-pelaaja {
@@ -167,16 +216,23 @@ h2 {
 .uusi-pelaaja input {
   font-size: clamp(24px, 4vw, 36px);
   width: min(80vw, 420px);
-  padding: 0.35em 0.6em;
-  border: 4px solid #ddd;
-  border-radius: 20px;
+  padding: 0.4em 0.7em;
+  border: 2px solid var(--reuna);
+  border-radius: 16px;
+  background: var(--pinta);
+  color: var(--teksti);
   -webkit-user-select: text;
   user-select: text;
 }
 
+.uusi-pelaaja input::placeholder {
+  color: var(--teksti-3);
+}
+
 .uusi-pelaaja input:focus {
   outline: none;
-  border-color: #4caf50;
+  border-color: var(--sininen);
+  box-shadow: 0 0 0 4px var(--sininen-vaalea);
 }
 
 /* --- Tehtävä ---------------------------------------------------------- */
@@ -188,10 +244,11 @@ h2 {
 /* "3 / 10" oikeassa yläkulmassa */
 .edistyminen {
   position: absolute;
-  top: 16px;
+  top: 18px;
   right: 24px;
-  font-size: 24px;
-  color: #aaa;
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--teksti-3);
 }
 
 /* Luettava sana (V-03) */
@@ -200,6 +257,7 @@ h2 {
   font-weight: bold;
   letter-spacing: 0.06em;
   line-height: 1.15;
+  color: var(--teksti);
 }
 
 /* Kuusi kuvavaihtoehtoa ruudukossa: 3 saraketta, 2 riviä (V-04) */
@@ -209,30 +267,37 @@ h2 {
   gap: min(3vw, 3vh);
 }
 
+/* Kuvat ovat valkoisia kortteja, joilla on pehmeä varjo */
 .kuva {
   font-size: min(11vw, 12vh, 96px);
   width: 1.55em;
   height: 1.55em;
   padding: 0;
   line-height: 1;
-  background: #fff;
-  border: 5px solid #ddd;
-  border-radius: 22px;
+  background: var(--pinta);
+  border: none;
+  border-radius: var(--kulma);
+  box-shadow: var(--varjo);
   cursor: pointer;
-  transition: transform 0.2s, opacity 0.3s, border-color 0.2s, background 0.2s;
+  transition: transform 0.2s, opacity 0.3s, box-shadow 0.2s, background 0.2s;
 }
 
-/* Oikea vastaus: vihreä reunus ja kuva kasvaa (V-07) */
+.kuva:active {
+  transform: scale(0.96);
+}
+
+/* Oikea vastaus: vihreä rengas ja kuva kasvaa (V-07) */
 .kuva.oikein {
-  border-color: #4caf50;
-  background: #e8f5e9;
-  transform: scale(1.12);
+  background: var(--vihrea-vaalea);
+  box-shadow: 0 0 0 5px var(--vihrea), var(--varjo-iso);
+  transform: scale(1.1);
 }
 
 /* Väärä vastaus: heilahdus ja himmennys (V-08) */
 .kuva.vaarin {
   animation: heilahdus 0.4s;
   opacity: 0.3;
+  box-shadow: none;
 }
 
 @keyframes heilahdus {
@@ -246,17 +311,21 @@ h2 {
 .kokonais {
   font-size: clamp(26px, 4.5vw, 42px);
   font-weight: bold;
-  color: #e0a800;
+  color: var(--sininen);
   margin: 0;
 }
 
 .tahtilaskuri {
   position: absolute;
-  top: 16px;
-  left: 24px;
-  font-size: 32px;
+  top: 14px;
+  left: 20px;
+  font-size: 28px;
   font-weight: bold;
-  color: #e0a800;
+  color: var(--teksti);
+  background: var(--pinta);
+  padding: 0.15em 0.6em;
+  border-radius: 999px;
+  box-shadow: var(--varjo);
 }
 
 /* Ansaitut tähdet ponnahtavat ruudun keskelle ja leijuvat ylös */
@@ -286,13 +355,18 @@ h2 {
 /* --- Tavut: tavuapu ja ääneenluku ------------------------------------- */
 
 .apu-nappi {
-  font-size: clamp(22px, 3.5vw, 32px);
-  padding: 0.35em 1em;
-  border: 4px solid #90caf9;
+  font-size: clamp(20px, 3.2vw, 30px);
+  font-weight: bold;
+  padding: 0.45em 1.2em;
+  border: none;
   border-radius: 999px;
-  background: #e3f2fd;
-  color: #1565c0;
+  background: var(--sininen-vaalea);
+  color: var(--sininen-tumma);
   cursor: pointer;
+}
+
+.apu-nappi:active {
+  transform: scale(0.97);
 }
 
 .tavut {
@@ -310,32 +384,35 @@ h2 {
   letter-spacing: 0.05em;
   line-height: 1.15;
   padding: 0 0.25em;
-  border: 5px solid #90caf9;
-  border-radius: 20px;
-  background: #fff;
-  color: #333;
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  border: none;
+  border-radius: var(--kulma);
+  background: var(--pinta);
+  color: var(--teksti);
+  box-shadow: var(--varjo);
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
 button.tavu {
   cursor: pointer;
+  box-shadow: 0 0 0 3px var(--sininen-vaalea), var(--varjo);
 }
 
 button.tavu:active {
-  background: #e3f2fd;
+  background: var(--sininen-vaalea);
   transform: scale(0.95);
 }
 
-/* Luettavana oleva tavu korostetaan (V-28) */
+/* Luettavana oleva tavu korostetaan turkoosilla (V-28) */
 .tavu.korostus {
-  background: #ffe082;
-  border-color: #ffb300;
+  background: #e0f6f8;
+  color: #0b6e7c;
+  box-shadow: 0 0 0 5px var(--turkoosi), var(--varjo-iso);
   transform: scale(1.08);
 }
 
 .tavu-viiva {
   font-size: min(8vw, 9vh, 80px);
-  color: #aaa;
+  color: var(--teksti-3);
 }
 
 .kuuntele {
@@ -354,26 +431,33 @@ button.tavu:active {
   padding-bottom: 32px;
 }
 
+/* Taulukko valkoisena korttina */
 .parhaat {
-  border-collapse: collapse;
-  font-size: clamp(18px, 2.8vw, 26px);
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: clamp(18px, 2.6vw, 24px);
   width: min(92vw, 640px);
+  background: var(--pinta);
+  border-radius: var(--kulma);
+  box-shadow: var(--varjo);
+  overflow: hidden;
 }
 
 .parhaat td {
-  padding: 0.35em 0.5em;
-  border-bottom: 2px solid #f0e2c0;
+  padding: 0.55em 0.7em;
+  border-bottom: 1px solid var(--reuna);
   text-align: left;
 }
 
-.parhaat td.sija    { width: 2.5em; text-align: center; }
-.parhaat td.pvm     { color: #777; }
+.parhaat tr:last-child td { border-bottom: none; }
+.parhaat td.sija    { width: 2.5em; text-align: center; color: var(--teksti-2); }
+.parhaat td.pvm     { color: var(--teksti-2); }
 .parhaat td.pisteet { text-align: right; font-weight: bold; white-space: nowrap; }
-.parhaat tr.oma td  { background: #fff1c9; }
+.parhaat tr.oma td  { background: var(--sininen-vaalea); }
 
 .ei-tuloksia, .kehitys-yhteenveto {
-  font-size: clamp(18px, 2.8vw, 26px);
-  color: #555;
+  font-size: clamp(18px, 2.6vw, 24px);
+  color: var(--teksti-2);
   margin: 0;
 }
 
@@ -385,7 +469,7 @@ button.tavu:active {
   width: min(92vw, 640px);
   height: 220px;
   margin-bottom: 28px; /* tilaa päivämäärille perusviivan alla */
-  border-bottom: 2px solid #ccc; /* perusviiva */
+  border-bottom: 1px solid var(--teksti-3); /* perusviiva */
 }
 
 .kehitys-sarake {
@@ -399,7 +483,7 @@ button.tavu:active {
 .kehitys-arvo {
   font-size: 18px;
   font-weight: bold;
-  color: #333;
+  color: var(--teksti);
   height: 24px;
 }
 
@@ -413,13 +497,13 @@ button.tavu:active {
 
 .kehitys-pylvas {
   width: min(70%, 36px);
-  background: #4a7fd4;
+  background: var(--sininen);
   border-radius: 4px 4px 0 0;
 }
 
 .kehitys-pvm {
   font-size: 13px;
-  color: #777;
+  color: var(--teksti-2);
   height: 0;
   transform: translateY(8px);
   white-space: nowrap;
